@@ -12,11 +12,11 @@ use SilverStripe\ORM\FieldType\DBField;
 
 class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFeedProviderInterface
 {
-	private static $db = array(
+	private static $db = [
 		'ClientID' => 'Varchar(400)',
 		'ClientSecret' => 'Varchar(400)',
-		'AccessToken' => 'Varchar(400)'
-	);
+		'AccessToken' => 'Varchar(400)',
+	];
 
 	private static $table_name = 'SocialFeedProviderInstagram';
 
@@ -30,12 +30,12 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 	public function getCMSFields()
 	{
 		$fields = parent::getCMSFields();
-		$fields->addFieldsToTab('Root.Main', LiteralField::create('sf_html_1', '<h4>To get the necessary Instagram API credentials you\'ll need to create an <a href="https://www.instagram.com/developer/clients/manage/" target="_blank">Instagram Client.</a></h4>'), 'Label');
-		$fields->addFieldsToTab('Root.Main', LiteralField::create('sf_html_2', '<p>You\'ll need to add the following redirect URI <code>' . $this->getRedirectUri() . '</code> in the settings for the Instagram App.</p>'), 'Label');
+		$fields->addFieldToTab('Root.Main', LiteralField::create('sf_html_1', '<h4>To get the necessary Instagram API credentials you\'ll need to create an <a href="https://www.instagram.com/developer/clients/manage/" target="_blank">Instagram Client.</a></h4>'), 'Label');
+		$fields->addFieldToTab('Root.Main', LiteralField::create('sf_html_2', '<p>You\'ll need to add the following redirect URI <code>' . $this->getRedirectUri() . '</code> in the settings for the Instagram App.</p>'), 'Label');
 
 		if ($this->ClientID && $this->ClientSecret) {
 			$url = $this->authBaseURL . '?client_id=' . $this->ClientID . '&response_type=code&redirect_uri=' . $this->getRedirectUri() . '?provider_id=' . $this->ID;
-			$fields->addFieldsToTab('Root.Main', LiteralField::create('sf_html_3', '<p><a href="' . $url . '"><button type="button">Authorize App to get Access Token</a></button>'), 'Label');
+			$fields->addFieldToTab('Root.Main', LiteralField::create('sf_html_3', '<p><a href="' . $url . '"><button type="button">Authorize App to get Access Token</a></button>'), 'Label');
 		}
 
 		return $fields;
@@ -43,7 +43,7 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 
 	public function getCMSValidator()
 	{
-		return RequiredFields::create(array('ClientID', 'ClientSecret'));
+		return RequiredFields::create(['ClientID', 'ClientSecret']);
 	}
 
 	/**
@@ -66,13 +66,13 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 		$provider = new Instagram([
 			'clientId' => $this->ClientID,
 			'clientSecret' => $this->ClientSecret,
-			'redirectUri' => $this->getRedirectUri() . '?provider_id=' . $this->ID
+			'redirectUri' => $this->getRedirectUri() . '?provider_id=' . $this->ID,
 		]);
 
 		//TODO: handle token expiry (as of 2016-08-03, Instagram access tokens don't expire.)
 		//TODO: save returned user data?
 		return $token = $provider->getAccessToken('authorization_code', [
-			'code' => $accessCode
+			'code' => $accessCode,
 		]);
 	}
 
@@ -96,7 +96,7 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 		$provider = new Instagram([
 			'clientId' => $this->ClientID,
 			'clientSecret' => $this->ClientSecret,
-			'redirectUri' => $this->getRedirectUri() . '?provider_id=' . $this->ID
+			'redirectUri' => $this->getRedirectUri() . '?provider_id=' . $this->ID,
 		]);
 
 		$request = $provider->getRequest('GET', 'https://api.instagram.com/v1/users/self/media/recent/?access_token=' . $this->AccessToken);
@@ -106,12 +106,12 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 			$errorHelpMessage = '';
 			if ($e->getCode() == 400) {
 				// "Missing client_id or access_token URL parameter." or "The access_token provided is invalid."
-				$cmsLink = Director::absoluteBaseURL().'admin/social-feed/SocialFeedProviderInstagram/EditForm/field/SocialFeedProviderInstagram/item/'.$this->ID.'/edit';
-				$errorHelpMessage = ' -- Go here '.$cmsLink.' and click "Authorize App to get Access Token" to restore Instagram feed.';
+				$cmsLink = Director::absoluteBaseURL() . 'admin/social-feed/SocialFeedProviderInstagram/EditForm/field/SocialFeedProviderInstagram/item/' . $this->ID . '/edit';
+				$errorHelpMessage = ' -- Go here ' . $cmsLink . ' and click "Authorize App to get Access Token" to restore Instagram feed.';
 			}
 			// Throw warning as we don't want the whole site to go down if Instagram starts failing.
 			user_error($e->getMessage() . $errorHelpMessage, E_USER_WARNING);
-			$result['data'] = array();
+			$result['data'] = [];
 		}
 		$output = json_decode($result->getBody(), 1);
 		return $output['data'];
@@ -120,7 +120,8 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 	/**
 	 * @return HTMLText
 	 */
-	public function getPostContent($post) {
+	public function getPostContent($post)
+	{
 		$text = isset($post['caption']['text']) ? $post['caption']['text'] : '';
 		$result = DBField::create_field('HTMLText', $text);
 		return $result;

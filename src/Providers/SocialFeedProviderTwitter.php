@@ -12,7 +12,7 @@ use SilverStripe\ORM\FieldType\DBField;
 
 class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeedProviderInterface
 {
-	private static $db = array (
+	private static $db = [
 		'ConsumerKey' => 'Varchar(400)',
 		'ConsumerSecret' => 'Varchar(400)',
 		'AccessToken' => 'Varchar(400)',
@@ -20,12 +20,12 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 		'ScreenName' => 'Varchar',
 		'TweetModeExtended' => 'Boolean',
 		'ShowReTweetedImages' => 'Boolean',
-	);
+	];
 
-	private static $field_labels = array (
+	private static $field_labels = [
 		'TweetModeExtended' => 'Extended mode (use if images are not showing)',
-		'ShowReTweetedImages' => 'Show images in re-tweets'
-	);
+		'ShowReTweetedImages' => 'Show images in re-tweets',
+	];
 
 	private static $singular_name = 'Twitter Provider';
 	private static $plural_name = 'Twitter Providers';
@@ -37,14 +37,14 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 	public function getCMSFields()
 	{
 		$fields = parent::getCMSFields();
-		$fields->addFieldsToTab('Root.Main', LiteralField::create('sf_html_1', '<h4>To get the necessary Twitter API credentials you\'ll need to create a <a href="https://apps.twitter.com" target="_blank">Twitter App.</a></h4>'), 'Label');
-		$fields->addFieldsToTab('Root.Main', LiteralField::create('sf_html_2', '<p>You can manually grant permissions to the Twitter App, this will give you an Access Token and Access Token Secret.</h5><p>&nbsp;</p>'), 'Label');
+		$fields->addFieldToTab('Root.Main', LiteralField::create('sf_html_1', '<h4>To get the necessary Twitter API credentials you\'ll need to create a <a href="https://apps.twitter.com" target="_blank">Twitter App.</a></h4>'), 'Label');
+		$fields->addFieldToTab('Root.Main', LiteralField::create('sf_html_2', '<p>You can manually grant permissions to the Twitter App, this will give you an Access Token and Access Token Secret.</h5><p>&nbsp;</p>'), 'Label');
 		return $fields;
 	}
 
 	public function getCMSValidator()
 	{
-		return RequiredFields::create(array('ConsumerKey', 'ConsumerSecret'));
+		return RequiredFields::create(['ConsumerKey', 'ConsumerSecret']);
 	}
 
 	/**
@@ -62,12 +62,10 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 		// NOTE: Twitter doesn't implement OAuth 2 so we can't use https://github.com/thephpleague/oauth2-client
 		$connection = new TwitterOAuth($this->ConsumerKey, $this->ConsumerSecret, $this->AccessToken, $this->AccessTokenSecret);
 		$parameters = ['count' => 25, 'exclude_replies' => true];
-		if($this->ScreenName)
-		{
+		if ($this->ScreenName) {
 			$parameters['screen_name'] = $this->ScreenName;
 		}
-		if($this->TweetModeExtended)
-		{
+		if ($this->TweetModeExtended) {
 			$parameters['tweet_mode'] = "extended";
 		}
 		$result = $connection->get('statuses/user_timeline', $parameters);
@@ -80,11 +78,12 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 	/**
 	 * @return HTMLText
 	 */
-	public function getPostContent($post) {
+	public function getPostContent($post)
+	{
 		$text = isset($post->text) ? $post->text : '';
-		if($this->TweetModeExtended && isset($post->full_text)) {
+		if ($this->TweetModeExtended && isset($post->full_text)) {
 			$text = $post->full_text;
-		} elseif(isset($post->text)) {
+		} else if (isset($post->text)) {
 			$text = $post->text;
 		}
 		$text = preg_replace('/(https?:\/\/[a-z0-9\.\/]+)/i', '<a href="$1" target="_blank">$1</a>', $text);
@@ -111,7 +110,7 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 	 */
 	public function getPostUrl($post)
 	{
-		return 'https://twitter.com/' . (string) $post->user->id .'/status/' . (string) $post->id;
+		return 'https://twitter.com/' . (string)$post->user->id . '/status/' . (string)$post->id;
 	}
 
 	/**
@@ -133,9 +132,9 @@ class SocialFeedProviderTwitter extends SocialFeedProvider implements SocialFeed
 	 */
 	public function getImage($post)
 	{
-		if(property_exists($post->entities, 'media') && $post->entities->media[0]->media_url_https) {
+		if (property_exists($post->entities, 'media') && $post->entities->media[0]->media_url_https) {
 			return $post->entities->media[0]->media_url_https;
-		} elseif($this->ShowReTweetedImages && isset($post->retweeted_status) && property_exists($post->retweeted_status, 'entities')&& property_exists($post->retweeted_status->entities, 'media') && $post->retweeted_status->entities->media[0]->media_url_https) {
+		} else if ($this->ShowReTweetedImages && isset($post->retweeted_status) && property_exists($post->retweeted_status, 'entities') && property_exists($post->retweeted_status->entities, 'media') && $post->retweeted_status->entities->media[0]->media_url_https) {
 			return $post->retweeted_status->entities->media[0]->media_url_https;
 		}
 	}
