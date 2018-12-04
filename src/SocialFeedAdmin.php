@@ -11,11 +11,11 @@ use IsaacRankin\SocialFeed\Providers\SocialFeedProviderInstagram;
 
 class SocialFeedAdmin extends ModelAdmin
 {
-	private static $managed_models = array(
+	private static $managed_models = [
 		SocialFeedProviderFacebook::class,
 		SocialFeedProviderTwitter::class,
-		SocialFeedProviderInstagram::class
-	);
+		SocialFeedProviderInstagram::class,
+	];
 
 	private static $url_segment = 'social-feed';
 
@@ -27,61 +27,53 @@ class SocialFeedAdmin extends ModelAdmin
 	{
 		parent::init();
 
-		// get the currently managed model
-		$model = $this->getRequest()->param('ModelClass');
-
 		// Instagram OAuth flow in action
-		if($model === SocialFeedProviderInstagram::class && isset($_GET['provider_id']) && is_numeric($_GET['provider_id']) && isset($_GET['code'])) {
+		if (isset($_GET['provider_id']) && is_numeric($_GET['provider_id']) && isset($_GET['code'])) {
 			// Find provider
 			$instagramProvider = SocialFeedProviderInstagram::get()->byID($_GET['provider_id']);
 
-			// Fetch access token using code
-			$accessToken = $instagramProvider->fetchAccessToken($_GET['code']);
+			if ($instagramProvider && $instagramProvider->exists()) {
 
-			// Set and save access token
-			$instagramProvider->AccessToken = $accessToken->getToken();
-			$instagramProvider->write();
+				// Fetch access token using code
+				$accessToken = $instagramProvider->fetchAccessToken($_GET['code']);
 
-			// Send user back to edit page
-			// TODO: show user a notification?
-			header('Location: ' . Director::absoluteBaseURL() . 'admin/social-feed/' . $model . '/EditForm/field/' . $model . '/item/' . $_GET['provider_id'] . '/edit');
-			exit;
+				// Set and save access token
+				$instagramProvider->AccessToken = $accessToken->getToken();
+				$instagramProvider->write();
+
+				// Send user back to edit page
+				// TODO: show user a notification?
+				$model = 'IsaacRankin-SocialFeed-Providers-SocialFeedProviderInstagram';
+				$uri = 'admin/social-feed/' . $model . '/EditForm/field/' . $model . '/item/';
+
+				header('Location: ' . Director::absoluteBaseURL() . uri . $_GET['provider_id'] . '/edit');
+				exit;
+			}
 		}
 	}
 
 
+	public function getList()
+	{
+		$context = $this->getSearchContext();
+		$params = $this->getRequest()->requestVar('q');
 
+		if (is_array($params)) {
+			$params = ArrayLib::array_map_recursive('trim', $params);
 
+			// Parse all DateFields to handle user input non ISO 8601 dates
+			foreach ($context->getFields() as $field) {
+				if ($field instanceof DatetimeField && !empty($params[$field->getName()])) {
+					$params[$field->getName()] = date('Y - m - d', strtotime($params[$field->getName()]));
+				}
+			}
+		}
 
-    public function getList()
-    {
-        $context = $this->getSearchContext();
-        $params = $this->getRequest()->requestVar('q');
+		$list = $context->getResults($params);
+		$this->extend('updateList', $list);
 
-        if (is_array($params)) {
-            $params = ArrayLib::array_map_recursive('trim', $params);
-
-            // Parse all DateFields to handle user input non ISO 8601 dates
-            foreach ($context->getFields() as $field) {
-                if ($field instanceof DatetimeField && !empty($params[$field->getName()])) {
-                    $params[$field->getName()] = date('Y-m-d', strtotime($params[$field->getName()]));
-                }
-            }
-        }
-
-
-        $list = $context->getResults($params);
-
-        $this->extend('updateList', $list);
-
-        return $list;
-    }
-
-
-
-
-
-
+		return $list;
+	}
 
 
 }
