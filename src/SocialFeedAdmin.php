@@ -44,9 +44,9 @@ class SocialFeedAdmin extends ModelAdmin
 				// Send user back to edit page
 				// TODO: show user a notification?
 				$model = 'IsaacRankin-SocialFeed-Providers-SocialFeedProviderInstagram';
-				$uri = 'admin/social-feed/' . $model . '/EditForm/field/' . $model . '/item/';
+				$modeluri = 'admin/social-feed/' . $model . '/EditForm/field/' . $model . '/item/';
 
-				header('Location: ' . Director::absoluteBaseURL() . uri . $_GET['provider_id'] . '/edit');
+				header('Location: ' . Director::absoluteBaseURL() . $modeluri . $_GET['provider_id'] . '/edit');
 				exit;
 			}
 		}

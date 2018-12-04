@@ -52,7 +52,7 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 	 */
 	private function getRedirectUri()
 	{
-		return Director::absoluteBaseURL() . 'admin/social-feed/instagram';
+		return Director::absoluteBaseURL() . 'admin/social-feed/';
 	}
 
 	/**
