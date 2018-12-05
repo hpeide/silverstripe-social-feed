@@ -106,7 +106,9 @@ class SocialFeedProviderInstagram extends SocialFeedProvider implements SocialFe
 			$errorHelpMessage = '';
 			if ($e->getCode() == 400) {
 				// "Missing client_id or access_token URL parameter." or "The access_token provided is invalid."
-				$cmsLink = Director::absoluteBaseURL() . 'admin/social-feed/SocialFeedProviderInstagram/EditForm/field/SocialFeedProviderInstagram/item/' . $this->ID . '/edit';
+				$model = 'IsaacRankin-SocialFeed-Providers-SocialFeedProviderInstagram';
+				$modeluri = 'admin/social-feed/' . $model . '/EditForm/field/' . $model . '/item/';
+				$cmsLink = Director::absoluteBaseURL() . $modeluri . $this->ID . '/edit';
 				$errorHelpMessage = ' -- Go here ' . $cmsLink . ' and click "Authorize App to get Access Token" to restore Instagram feed.';
 			}
 			// Throw warning as we don't want the whole site to go down if Instagram starts failing.
