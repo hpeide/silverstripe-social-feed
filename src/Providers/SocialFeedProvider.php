@@ -54,8 +54,6 @@ class SocialFeedProvider extends DataObject
 	/**
 	 * Title of provider
 	 *
-	 *
-	 *
 	 * @return mixed|string
 	 */
 	public function getTitle()
