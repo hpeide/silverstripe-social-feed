@@ -13,42 +13,54 @@ use SilverStripe\Core\Injector\Injector;
 
 class SocialFeedProvider extends DataObject
 {
-	private static $db = array(
+	private static $db = [
 		'Label' => 'Varchar(100)',
-		'Enabled' => 'Boolean'
-	);
+		'Enabled' => 'Boolean',
+	];
 
-	private static $summary_fields = array(
+	private static $summary_fields = [
 		'Label',
-		'Enabled'
-	);
+		'Enabled',
+	];
 
 	private static $table_name = 'SocialFeedProvider';
 
 	/**
 	 * @return FieldList
 	 */
-	public function getCMSFields() {
-		if (Controller::has_curr())
-		{
+	public function getCMSFields()
+	{
+		if (Controller::has_curr()) {
 			if (isset($_GET['socialfeedclearcache']) && $_GET['socialfeedclearcache'] == 1 && $this->canEdit()) {
 				$this->clearFeedCache();
-				$url =  Controller::curr()->getRequest()->getVar('url');
+				$url = Controller::curr()->getRequest()->getVar('url');
 				$urlAndParams = explode('?', $url);
 				Controller::curr()->redirect($urlAndParams[0]);
 			}
 
-			$this->beforeUpdateCMSFields(function($fields) {
+			$this->beforeUpdateCMSFields(function ($fields) {
 				$cache = $this->getFeedCache();
 				if ($cache !== null && $cache !== false) {
 					$url = Controller::curr()->getRequest()->getVar('url');
 					$url .= '?socialfeedclearcache=1';
-					$fields->addFieldToTab('Root.Main', LiteralField::create('cacheclear', '<a href="'.$url.'" class="field ss-ui-button ui-button" style="max-width: 100px;">Clear Cache</a>'));
+					$fields->addFieldToTab('Root.Main', LiteralField::create('cacheclear', '<a href="' . $url . '" class="field ss-ui-button ui-button" style="max-width: 100px;">Clear Cache</a>'));
 				}
 			});
 		}
 		$fields = parent::getCMSFields();
 		return $fields;
+	}
+
+	/**
+	 * Title of provider
+	 *
+	 *
+	 *
+	 * @return mixed|string
+	 */
+	public function getTitle()
+	{
+		return $this->Label;
 	}
 
 	/**
@@ -59,7 +71,8 @@ class SocialFeedProvider extends DataObject
 	 *
 	 * @return SS_List
 	 */
-	public function getFeed() {
+	public function getFeed()
+	{
 		$feed = $this->getFeedCache();
 		if (!$feed) {
 			$feed = $this->getFeedUncached();
@@ -70,7 +83,7 @@ class SocialFeedProvider extends DataObject
 			}
 		}
 
-		$data = array();
+		$data = [];
 		if ($feed) {
 			foreach ($feed as $post) {
 				$created = DBDatetime::create();
@@ -83,15 +96,15 @@ class SocialFeedProvider extends DataObject
 
 				$created->setValue($timestamp);
 
-				$data[] = array(
+				$data[] = [
 					'Type' => $this->getType(),
 					'Content' => $this->getPostContent($post),
 					'Created' => $created,
 					'URL' => $this->getPostUrl($post),
 					'Data' => $post,
 					'UserName' => $this->getUserName($post),
-					'Image' => $this->getImage($post)
-				);
+					'Image' => $this->getImage($post),
+				];
 			}
 		}
 
@@ -104,8 +117,9 @@ class SocialFeedProvider extends DataObject
 	 * Retrieve the providers feed without checking the cache first.
 	 * @throws Exception
 	 */
-	public function getFeedUncached() {
-		throw new Exception($this->class.' missing implementation for '.__FUNCTION__);
+	public function getFeedUncached()
+	{
+		throw new Exception($this->class . ' missing implementation for ' . __FUNCTION__);
 	}
 
 	/**
@@ -114,7 +128,8 @@ class SocialFeedProvider extends DataObject
 	 *
 	 * @return array
 	 */
-	public function getFeedCache() {
+	public function getFeedCache()
+	{
 		$cache = $this->getCacheFactory();
 		$feedStore = $cache->get($this->ID);
 		if (!$feedStore) {
@@ -132,7 +147,8 @@ class SocialFeedProvider extends DataObject
 	 *
 	 * @return int
 	 */
-	public function getFeedCacheExpiry() {
+	public function getFeedCacheExpiry()
+	{
 		$cache = $this->getCacheFactory();
 		$metadata = $cache->getMetadatas($this->ID);
 		if ($metadata && isset($metadata['expire'])) {
@@ -144,7 +160,8 @@ class SocialFeedProvider extends DataObject
 	/**
 	 * Set the cache.
 	 */
-	public function setFeedCache(array $feed) {
+	public function setFeedCache(array $feed)
+	{
 		$cache = $this->getCacheFactory();
 		$feedStore = serialize($feed);
 		$result = $cache->set($this->ID, $feedStore);
@@ -154,7 +171,8 @@ class SocialFeedProvider extends DataObject
 	/**
 	 * Clear the cache that holds this providers feed.
 	 */
-	public function clearFeedCache() {
+	public function clearFeedCache()
+	{
 		$cache = $this->getCacheFactory();
 		return $cache->remove($this->ID);
 	}
@@ -162,7 +180,8 @@ class SocialFeedProvider extends DataObject
 	/**
 	 * @return Zend_Cache_Frontend_Output
 	 */
-	protected function getCacheFactory() {
+	protected function getCacheFactory()
+	{
 		$cache = Injector::inst()->get(CacheInterface::class . '.SocialFeedProvider');
 		return $cache;
 	}
