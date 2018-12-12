@@ -53,7 +53,7 @@ class SocialFeedAdmin extends ModelAdmin
 	}
 
 
-	public function getList()
+/*public function getList()
 	{
 		$context = $this->getSearchContext();
 		$params = $this->getRequest()->requestVar('q');
@@ -73,7 +73,7 @@ class SocialFeedAdmin extends ModelAdmin
 		$this->extend('updateList', $list);
 
 		return $list;
-	}
+	}*/
 
 
 }
